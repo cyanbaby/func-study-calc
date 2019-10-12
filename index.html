@@ -31,6 +31,7 @@
       <input type="button" value="÷" class="btn" title="divide" />
       <input type="button" value="%" class="btn" title="mod" />
       <input type="button" value="^" class="btn" title="power" />
+      <input type="button" value="1/x" class="btn" title="invert" />
     </p>
   </div>
   
@@ -74,41 +75,71 @@
     }
 
     // 运算
-    function operate(name, num1, num2) {
-      // console.log(`name: ${name}, num1: ${num1}, num2: ${num2}`)
-      if(!operation[name]) throw new Error('不存在名为' + name + '的运算方法！');
-      return operation[name](num1, num2);
-    } 
-
-    var operation = {
-      add: function(num1, num2) {
-        // console.log(`num1: ${num1}, num2: ${num2}`)
-        return +num1 + +num2;
-      },
-      subtract: function(num1, num2) {
-        return num1 - num2;
-      },
-      multiply: function(num1, num2) {
-        return num1 * num2;
-      },
-      divide: function(num1, num2) {
-        return num1 / num2;
-      },
-      addOperation: function(name, fn) {
-        if(!this[name]) {
-          this[name] = fn;
+    var operate = (function() {
+      // 运算方法
+      var operation = {
+        add: function(num1, num2) {
+          // console.log(`num1: ${num1}, num2: ${num2}`)
+          return +num1 + +num2;
+        },
+        subtract: function(num1, num2) {
+          return num1 - num2;
+        },
+        multiply: function(num1, num2) {
+          return num1 * num2;
+        },
+        divide: function(num1, num2) {
+          return num1 / num2;
+        },
+        addOperation: function(name, fn) {
+          if(!operation[name]) {
+            operation[name] = fn;
+          }
+          return operation;
         }
-        return this;
-      }
 
-    };
+      };
+
+//*
+      // 执行运算方法
+      // function operate(name, num1, num2) {
+      //   // console.log(`name: ${name}, num1: ${num1}, num2: ${num2}`)
+      //   if(!operation[name]) throw new Error('不存在名为' + name + '的运算方法！');
+      //   return operation[name](num1, num2);
+      // }       
+      function operate(name) {
+        // console.log(`name: ${name}, num1: ${num1}, num2: ${num2}`)
+        if(!operation[name]) throw new Error('不存在名为' + name + '的运算方法！');
+        // 此版本所有精髓在此 call / apply,  可以借用别人的方法
+        return operation[name].apply(operation, [].slice.call(arguments, 1, arguments.length));
+        
+      }  
+
+      operate.addOperation = operation.addOperation;    // 注意this
+
+      // 外面添加计算方法的功能不能访问了, retrun 一个局部函数出去,这里可以直接省去 operate直接return一个匿名函数。
+      // 但是执行匿名函数的地方 要接收
+      return operate;
+//*/
+/*    因为外面还要添加功能, 就不用匿名函数返回了
+      return function (name, num1, num2) {
+        // console.log(`name: ${name}, num1: ${num1}, num2: ${num2}`)
+        if(!operation[name]) throw new Error('不存在名为' + name + '的运算方法！');
+        return operation[name](num1, num2);
+      }  
+*/  
+
+    })();
+
 
     // 安全问题, 不这样直接添加 operation.power = function(){..} 如果operation重名了就把黑盒子里面的方法覆盖掉了
-    operation.addOperation('mod', function(num1, num2) {
+    operate.addOperation('mod', function(num1, num2) {
       return num1 % num2;
     }).addOperation('power', function(base, power) {
       return Math.pow(base, power);
-    })
+    }).addOperation('invert', function(num) {
+      return 1 / num;
+    });
 
     // 输出结果函数
     function outputResult(result) {
