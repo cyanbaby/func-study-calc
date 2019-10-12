@@ -25,15 +25,15 @@
       <span class="resultOutput">2</span>
     </p>
     <p>
-      <input type="button" value="+" class="btn" />
-      <input type="button" value="-" class="btn" />
-      <input type="button" value="×" class="btn" />
-      <input type="button" value="÷" class="btn" />
+      <input type="button" value="+" class="btn" title="add" />
+      <input type="button" value="-" class="btn" title="subtract" />
+      <input type="button" value="×" class="btn" title="multiply" />
+      <input type="button" value="÷" class="btn" title="divide" />
     </p>
   </div>
   
   <script>
-  // 第一次改进--行为结构分离
+  // 第二次改进--循环
   // 获取元素
   var calculator    = document.querySelector("#calculator");
   var formerInput   = calculator.querySelector(".formerInput");
@@ -43,14 +43,25 @@
   var btns          = calculator.querySelectorAll(".btn");
 
   // 绑定事件
-  // +  
-  btns[0].onclick = addHandler;
-  // -  
-  btns[1].onclick = subtractHandler;
-  //   
-  btns[2].onclick = multiplyHandler;
-  // ÷  
-  btns[3].onclick = divideHandler;
+  for(var i=0; i < btns.length; i++) {
+    btns[i].onclick = function() {
+      // console.log(this.value)  // 为了健壮性不判断1,2,3..  判断value  this指向相应的btn,如果value不易判断添加title判断
+      switch(this.title) {
+        case "add":
+            addHandler();         // 这里是执行函数, 因为外面绑定事件的时候是一个匿名函数?
+            break;
+        case "subtract":
+            subtractHandler();
+            break;
+        case "multiply":
+            multiplyHandler();
+            break;   
+        case "divide":
+            divideHandler();
+            break;
+      }
+    };
+  }
 
   // 加
   function addHandler() {
