@@ -33,41 +33,21 @@
   </div>
   
   <script>
-  // 第三次改进--提取函数
+  // 第四次改进--管理代码(帮我们的代码找到组织)
   // 获取元素
-  var calculator    = document.querySelector("#calculator");
-  var formerInput   = calculator.querySelector(".formerInput");
-  var laterInput    = calculator.querySelector(".laterInput");
-  var sign          = calculator.querySelector(".sign");
-  var resultOutput  = calculator.querySelector(".resultOutput");
-  var btns          = calculator.querySelectorAll(".btn");
-
+  var wrapElem = document.querySelector("#calculator");
+  var calculatorElem = {
+    formerInput   : wrapElem.querySelector(".formerInput"),
+    laterInput    : wrapElem.querySelector(".laterInput"),
+    sign          : wrapElem.querySelector(".sign"),
+    resultOutput  : wrapElem.querySelector(".resultOutput"),
+    btns          : wrapElem.querySelectorAll(".btn"),
+  };
   
-  /*  
-  // 绑定事件
-  for(var i=0; i < btns.length; i++) {
-    btns[i].onclick = function() {
-      // console.log(this.value)  // 为了健壮性不判断1,2,3..  判断value  this指向相应的btn,如果value不易判断添加title判断
-      switch(this.title) {
-        case "add":
-            addHandler();         // 这里是执行函数, 因为外面绑定事件的时候是一个匿名函数?
-            break;
-        case "subtract":
-            subtractHandler();
-            break;
-        case "multiply":
-            multiplyHandler();
-            break;   
-        case "divide":
-            divideHandler();
-            break;
-      }
-    };
-  }
-  //*/
+  // console.log(calculatorElem)
 
   // 绑定事件
-  each(btns, function(index, elem) {
+  each(calculatorElem.btns, function(index, elem) {
     elem.onclick = function() {
       // console.log(this.value)  // 为了健壮性不判断1,2,3..  判断value  this指向相应的btn,如果value不易判断添加title判断
       switch(this.title) {
@@ -97,10 +77,26 @@
 
   // 更新符号
   function updateSign(symbol) {
-    sign.innerHTML = symbol;
+    calculatorElem.sign.innerHTML = symbol;
   }
 
   // 计算方法(加减乘除为什么不写到一个大的函数? 一个函数尽量只做一件事情, 而不是做很多事情变得庞大无比, 功能职责不明确, 分开写用的时候组合起来就好了)
+  // 之前为了保持函数健壮, 拆分成了很多小函数(但是小函数越多约不方便我们管理) 所以为它们找到组织, 这些小函数都是运算, 同样可以创建对象加强管理
+  var operation = {
+    add: function(num1, num2) {
+      return +num1 + +num2;
+    },
+    subtract: function(num1, num2) {
+      return num1 - num2;
+    },
+    multiply: function(num1, num2) {
+      return num1 * num2;
+    },
+    divide: function(num1, num2) {
+      return num1 / num2;
+    }        
+  };
+/*
   // 加法
   function add(num1, num2) {
     return +num1 + +num2;
@@ -117,31 +113,32 @@
   function divide(num1, num2) {
     return num1 / num2;
   }
+*/
 
   // 输出结果函数
   function outputResult(result) {
-    resultOutput.innerHTML = result;
+    calculatorElem.resultOutput.innerHTML = result;
   }
 
   // 加
   function addHandler() {
     updateSign("+");
-    outputResult(add(formerInput.value, laterInput.value));
+    outputResult(operation.add(calculatorElem.formerInput.value, calculatorElem.laterInput.value));
   } 
   // 减
   function subtractHandler() {
     updateSign("-");
-    outputResult(subtract(formerInput.value, laterInput.value));
+    outputResult(operation.subtract(calculatorElem.formerInput.value, calculatorElem.laterInput.value));
   } 
   // 乘
   function multiplyHandler() {
     updateSign("×");
-    outputResult(multiply(formerInput.value, laterInput.value));
+    outputResult(operation.multiply(calculatorElem.formerInput.value, calculatorElem.laterInput.value));
   } 
   // 除
   function divideHandler() {
     updateSign("÷");
-    outputResult(divide(formerInput.value, laterInput.value));
+    outputResult(operation.divide(calculatorElem.formerInput.value, calculatorElem.laterInput.value));
   } 
 
   /*
