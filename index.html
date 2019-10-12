@@ -29,11 +29,13 @@
       <input type="button" value="-" class="btn" title="subtract" />
       <input type="button" value="×" class="btn" title="multiply" />
       <input type="button" value="÷" class="btn" title="divide" />
+      <input type="button" value="%" class="btn" title="mod" />
+      <input type="button" value="^" class="btn" title="power" />
     </p>
   </div>
   
   <script>
-  // 第四次改进--管理代码(帮我们的代码找到组织)
+  // 第五次改进--OCP原则(Open Closed Principle,开闭原则)
   // 获取元素
   var wrapElem = document.querySelector("#calculator");
   var calculatorElem = {
@@ -44,26 +46,43 @@
     btns          : wrapElem.querySelectorAll(".btn"),
   };
   
-  // console.log(calculatorElem)
 
+/*
+  // 绑定事件-- 添加取余功能很麻烦(去掉switch)
+  // 每次新增功能的时候, 需要深入到原有的代码里去修改(容易改错,影响原来的功能) 
+  // 对新增功能支持(黑盒子之外提供api), 对修改原有的代码(假设是黑盒子)保持封闭
+  each(calculatorElem.btns, function(index, elem) {
+    elem.onclick = function() {
+      updateSign(this.value);
+      switch(this.title) {
+        case "add":
+            // addHandler();         // 这里是执行函数, 因为外面绑定事件的时候是一个匿名函数?
+            outputResult(operation.add(calculatorElem.formerInput.value, calculatorElem.laterInput.value));
+            break;
+        case "subtract":
+            // subtractHandler();
+            outputResult(operation.subtract(calculatorElem.formerInput.value, calculatorElem.laterInput.value));
+            break;
+        case "multiply":
+            // multiplyHandler();
+            outputResult(operation.multiply(calculatorElem.formerInput.value, calculatorElem.laterInput.value));
+            break;   
+        case "divide":
+            // divideHandler();
+            outputResult(operation.divide(calculatorElem.formerInput.value, calculatorElem.laterInput.value));
+            break;
+        case "mod":
+            outputResult(operation.mod(calculatorElem.formerInput.value, calculatorElem.laterInput.value));
+            break;
+      }
+    };
+  });
+*/
   // 绑定事件
   each(calculatorElem.btns, function(index, elem) {
     elem.onclick = function() {
-      // console.log(this.value)  // 为了健壮性不判断1,2,3..  判断value  this指向相应的btn,如果value不易判断添加title判断
-      switch(this.title) {
-        case "add":
-            addHandler();         // 这里是执行函数, 因为外面绑定事件的时候是一个匿名函数?
-            break;
-        case "subtract":
-            subtractHandler();
-            break;
-        case "multiply":
-            multiplyHandler();
-            break;   
-        case "divide":
-            divideHandler();
-            break;
-      }
+      updateSign(this.value);
+      outputResult(operate(this.title, calculatorElem.formerInput.value, calculatorElem.laterInput.value));
     };
   });
 
@@ -80,10 +99,18 @@
     calculatorElem.sign.innerHTML = symbol;
   }
 
+  // 运算
+  function operate(name, num1, num2) {
+    // console.log(`name: ${name}, num1: ${num1}, num2: ${num2}`)
+    if(!operation[name]) throw new Error('不存在名为' + name + '的运算方法！');
+    return operation[name](num1, num2);
+  }  
+
   // 计算方法(加减乘除为什么不写到一个大的函数? 一个函数尽量只做一件事情, 而不是做很多事情变得庞大无比, 功能职责不明确, 分开写用的时候组合起来就好了)
   // 之前为了保持函数健壮, 拆分成了很多小函数(但是小函数越多约不方便我们管理) 所以为它们找到组织, 这些小函数都是运算, 同样可以创建对象加强管理
   var operation = {
     add: function(num1, num2) {
+      // console.log(`num1: ${num1}, num2: ${num2}`)
       return +num1 + +num2;
     },
     subtract: function(num1, num2) {
@@ -94,26 +121,22 @@
     },
     divide: function(num1, num2) {
       return num1 / num2;
-    }        
+    },
+    addOperation: function(name, fn) {
+      if(!this[name]) {
+        this[name] = fn;
+      }
+      return this;
+    }
+
   };
-/*
-  // 加法
-  function add(num1, num2) {
-    return +num1 + +num2;
-  }
-  // 减法
-  function subtract(num1, num2) {
-    return num1 - num2;
-  }
-  // 乘法
-  function multiply(num1, num2) {
-    return num1 * num2;
-  }
-  // 除法
-  function divide(num1, num2) {
-    return num1 / num2;
-  }
-*/
+
+  // 安全问题, 不这样直接添加 operation.power = function(){..} 如果operation重名了就把黑盒子里面的方法覆盖掉了
+  operation.addOperation('mod', function(num1, num2) {
+    return num1 % num2;
+  }).addOperation('power', function(base, power) {
+    return Math.pow(base, power);
+  })
 
   // 输出结果函数
   function outputResult(result) {
@@ -121,32 +144,24 @@
   }
 
   // 加
+  // 每一个计算方法都有一个 updateSign, 用this.value
+
+
+  /*
   function addHandler() {
-    updateSign("+");
     outputResult(operation.add(calculatorElem.formerInput.value, calculatorElem.laterInput.value));
   } 
   // 减
   function subtractHandler() {
-    updateSign("-");
     outputResult(operation.subtract(calculatorElem.formerInput.value, calculatorElem.laterInput.value));
   } 
   // 乘
   function multiplyHandler() {
-    updateSign("×");
     outputResult(operation.multiply(calculatorElem.formerInput.value, calculatorElem.laterInput.value));
   } 
   // 除
   function divideHandler() {
-    updateSign("÷");
     outputResult(operation.divide(calculatorElem.formerInput.value, calculatorElem.laterInput.value));
-  } 
-
-  /*
-  当一个程序暴露太多细节的时候，应该用函数封装起来 
-  比如:
-  function addHandler() {
-    sign.innerHTML = "+";   // 还有这里
-    resultOutput.innerHTML = +formerInput.value + +laterInput.value;  // 这里做了两件事情
   } 
   */ 
 
